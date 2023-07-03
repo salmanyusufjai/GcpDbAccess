@@ -13,15 +13,15 @@ public class CloudSQLConnectionExample {
         String password = "your-password";
         
         String jdbcUrl = String.format(
-            "jdbc:mysql://google/%s?cloudSqlInstance=%s&"
-            + "socketFactory=com.google.cloud.sql.mysql.SocketFactory&"
+            "jdbc:postgresql://google/%s?cloudSqlInstance=%s&"
+            + "socketFactory=com.google.cloud.sql.postgres.SocketFactory&"
             + "user=%s&password=%s",
             databaseName, instanceConnectionName, username, password
         );
 
         try {
             // Load the JDBC driver
-            Class.forName("com.mysql.jdbc.Driver");
+            Class.forName("org.postgresql.Driver");
 
             // Establish the connection
             Connection connection = DriverManager.getConnection(jdbcUrl);
