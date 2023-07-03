@@ -1,0 +1,48 @@
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+
+public class CloudSQLConnectionExample {
+    public static void main(String[] args) {
+        // Set up the JDBC connection URL
+        String instanceConnectionName = "your-project:your-region:your-instance";
+        String databaseName = "your-database";
+        String username = "your-username";
+        String password = "your-password";
+        
+        String jdbcUrl = String.format(
+            "jdbc:mysql://google/%s?cloudSqlInstance=%s&"
+            + "socketFactory=com.google.cloud.sql.mysql.SocketFactory&"
+            + "user=%s&password=%s",
+            databaseName, instanceConnectionName, username, password
+        );
+
+        try {
+            // Load the JDBC driver
+            Class.forName("com.mysql.jdbc.Driver");
+
+            // Establish the connection
+            Connection connection = DriverManager.getConnection(jdbcUrl);
+
+            // Use the connection to perform database operations
+            Statement statement = connection.createStatement();
+            ResultSet resultSet = statement.executeQuery("SELECT * FROM your_table");
+
+            // Process the result set
+            while (resultSet.next()) {
+                // Process each row
+                String columnValue = resultSet.getString("column_name");
+                System.out.println(columnValue);
+            }
+
+            // Close the resources
+            resultSet.close();
+            statement.close();
+            connection.close();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+}
