@@ -1,0 +1,48 @@
+import org.apache.beam.sdk.Pipeline;
+import org.apache.beam.sdk.io.TextIO;
+import org.apache.beam.sdk.options.PipelineOptionsFactory;
+import org.apache.beam.sdk.transforms.SerializableFunction;
+import org.apache.beam.sdk.values.PCollection;
+import org.apache.beam.sdk.values.TypeDescriptor;
+import java.util.ArrayList;
+import java.util.List;
+
+public class PCollectionToListExample {
+    public static void main(String[] args) {
+        // Create a Beam pipeline
+        Pipeline pipeline = Pipeline.create(PipelineOptionsFactory.create());
+
+        // Read input from a file and apply transformations
+        PCollection<String> inputCollection = pipeline.apply(TextIO.read().from("input.txt"));
+        PCollection<YourBean> beanCollection = inputCollection.apply(/* Transformation here */);
+
+        // Convert PCollection to List
+        List<YourBean> beanList = new ArrayList<>();
+        beanCollection.apply(org.apache.beam.sdk.transforms.ParDo.of(new AddToArrayList<>(beanList)));
+
+        // Do something with the list
+        // ...
+
+        // Run the pipeline
+        pipeline.run();
+    }
+
+    // ParDo function to add elements to the ArrayList
+    static class AddToArrayList<T> extends org.apache.beam.sdk.transforms.DoFn<T, Void> {
+        private final List<T> list;
+
+        AddToArrayList(List<T> list) {
+            this.list = list;
+        }
+
+        @ProcessElement
+        public void processElement(ProcessContext c) {
+            list.add(c.element());
+        }
+    }
+
+    // YourBean class example
+    static class YourBean {
+        // Class implementation
+    }
+}
