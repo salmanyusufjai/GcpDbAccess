@@ -1,0 +1,75 @@
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContexts;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+import java.io.FileInputStream;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
+public class HttpClientWithPublicCertificate {
+
+    public static void main(String[] args) {
+        String certificateFilePath = "/path/to/public_certificate.crt";
+
+        try {
+            // Load the public certificate from the .crt file
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            X509Certificate certificate;
+            try (FileInputStream fis = new FileInputStream(certificateFilePath)) {
+                certificate = (X509Certificate) certificateFactory.generateCertificate(fis);
+            }
+
+            // Create a custom TrustManager that trusts the specific certificate
+            TrustManager[] trustManagers = new TrustManager[]{
+                new X509TrustManager() {
+                    @Override
+                    public void checkClientTrusted(X509Certificate[] x509Certificates, String s) {
+                        // Empty method body to trust all clients
+                    }
+
+                    @Override
+                    public void checkServerTrusted(X509Certificate[] x509Certificates, String s) {
+                        // Validate the server certificate here if needed
+                        // For this example, we trust any server with the given certificate
+                        for (X509Certificate cert : x509Certificates) {
+                            if (cert.equals(certificate)) {
+                                return; // Certificate matches, trusted
+                            }
+                        }
+                        throw new SecurityException("Server certificate not trusted!");
+                    }
+
+                    @Override
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return null;
+                    }
+                }
+            };
+
+            // Create an SSLContext with the custom TrustManager
+            SSLContext sslContext = SSLContexts.custom()
+                    .loadTrustMaterial(trustManagers)
+                    .build();
+
+            // Use the SSLContext to create HttpClient
+            CloseableHttpClient httpClient = HttpClients.custom()
+                    .setSslcontext(sslContext)
+                    .build();
+
+            // Now you can use the httpClient to make HTTPS requests
+            // For example:
+            // HttpGet httpGet = new HttpGet("https://example.com/api");
+            // HttpResponse response = httpClient.execute(httpGet);
+            // ...
+
+            System.out.println("HttpClient configured with the custom public certificate.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+}
