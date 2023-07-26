@@ -1,0 +1,62 @@
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.ssl.SSLContexts;
+import org.apache.http.ssl.TrustSelfSignedStrategy;
+import javax.net.ssl.SSLContext;
+import java.io.FileInputStream;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
+
+public class HttpClientWithPublicCertificate {
+
+    public static void main(String[] args) {
+        String certificateFilePath = "/path/to/public_certificate.crt";
+
+        try {
+            // Load the public certificate from the .crt file
+            CertificateFactory certificateFactory = CertificateFactory.getInstance("X.509");
+            X509Certificate certificate;
+            try (FileInputStream fis = new FileInputStream(certificateFilePath)) {
+                certificate = (X509Certificate) certificateFactory.generateCertificate(fis);
+            }
+
+            // Create a custom TrustManager that trusts the specific certificate
+            TrustSelfSignedStrategy trustStrategy = new TrustSelfSignedStrategy();
+
+            // Create an SSLContext with the custom TrustManager
+            SSLContext sslContext = SSLContexts.custom()
+                    .loadTrustMaterial(new CustomTrustStore(certificate), trustStrategy)
+                    .build();
+
+            // Use the SSLContext to create HttpClient
+            CloseableHttpClient httpClient = HttpClients.custom()
+                    .setSslcontext(sslContext)
+                    .build();
+
+            // Now you can use the httpClient to make HTTPS requests
+            // For example:
+            // HttpGet httpGet = new HttpGet("https://example.com/api");
+            // HttpResponse response = httpClient.execute(httpGet);
+            // ...
+
+            System.out.println("HttpClient configured with the custom public certificate.");
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static class CustomTrustStore extends java.security.KeyStore {
+
+        private final X509Certificate certificate;
+
+        public CustomTrustStore(X509Certificate certificate) throws Exception {
+            super(null); // Must be null to create an empty keystore
+            this.certificate = certificate;
+            this.setCertificateEntry("my_certificate", certificate);
+        }
+    }
+}
