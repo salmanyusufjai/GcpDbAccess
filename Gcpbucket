@@ -1,0 +1,61 @@
+import com.google.cloud.storage.Bucket;
+import com.google.cloud.storage.Storage;
+import com.google.cloud.storage.StorageOptions;
+
+public class DynamicBucketAccess {
+    public static void main(String[] args) {
+        // Define a list of projects and their associated buckets
+        ProjectBucketMapping[] projectBucketMappings = {
+            new ProjectBucketMapping("project-1", "my-bucket-1"),
+            new ProjectBucketMapping("project-2", "my-bucket-2"),
+            new ProjectBucketMapping("project-3", "my-bucket-3")
+        };
+
+        // Attempt to access buckets in each project and return the first successful access
+        Bucket accessibleBucket = null;
+        for (ProjectBucketMapping mapping : projectBucketMappings) {
+            accessibleBucket = tryAccessBucket(mapping.getProjectName(), mapping.getBucketName());
+            if (accessibleBucket != null) {
+                System.out.println("Access granted to bucket in Project: " + mapping.getProjectName());
+                break;
+            }
+        }
+
+        if (accessibleBucket != null) {
+            // You have access to this bucket
+            System.out.println("Access granted to bucket: " + accessibleBucket.getName());
+        } else {
+            // Handle the case where no access was granted
+            System.out.println("No access granted to any bucket.");
+        }
+    }
+
+    // Method to attempt access to a specific bucket
+    private static Bucket tryAccessBucket(String projectName, String bucketName) {
+        try {
+            Storage storage = StorageOptions.newBuilder().setProjectId(projectName).build().getService();
+            return storage.get(bucketName);
+        } catch (Exception e) {
+            // Handle any errors, such as permission issues or non-existent buckets
+            return null;
+        }
+    }
+}
+
+class ProjectBucketMapping {
+    private final String projectName;
+    private final String bucketName;
+
+    public ProjectBucketMapping(String projectName, String bucketName) {
+        this.projectName = projectName;
+        this.bucketName = bucketName;
+    }
+
+    public String getProjectName() {
+        return projectName;
+    }
+
+    public String getBucketName() {
+        return bucketName;
+    }
+}
