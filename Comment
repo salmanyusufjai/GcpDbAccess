@@ -1,0 +1,18 @@
+/**
+ * This class represents a custom Apache Beam ParDo transform that processes Document objects.
+ * It extends the DoFn class to define the processing logic for Document elements.
+ *
+ * <p>Usage example:
+ * <pre>{@code
+ * PCollection<Document> input = ...; // Input collection of Document objects
+ * PCollection<Document> output = input.apply(ParDo.of(new abc()));
+ * }</pre>
+ *
+ * <p>Ensure that the processing logic is implemented in the {@link #processElement(ProcessContext)} method
+ * within this class.
+ *
+ * @param <Document> The input and output type for this ParDo transform.
+ */
+public class abc extends DoFn<Document, Document> {
+    // Implementation details here...
+}
